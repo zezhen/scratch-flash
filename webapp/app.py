@@ -1,7 +1,7 @@
 # coding: utf-8
 
 import cherrypy
-import os
+import os, socket
 import ConfigParser
 import subprocess
 import qrcode
@@ -20,9 +20,19 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 fh.setFormatter(formatter)
 logger.addHandler(fh)
 
+_hostname = '0.0.0.0'
+_port = 80
+
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+try:
+    s.bind((_hostname, _port))
+except socket.error as e:
+    logger.debug('port 80 is in used, try to use 4080')
+    _port = 4080
+
 server_config = {
-    'server.socket_host': '0.0.0.0',
-    'server.socket_port': 4080,
+    'server.socket_host': _hostname,
+    'server.socket_port': _port,
     'response.timeout': 10*60
 }
 cherrypy.config.update(server_config)
