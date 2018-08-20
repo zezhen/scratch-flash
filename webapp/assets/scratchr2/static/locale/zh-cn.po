@@ -1972,3 +1972,9 @@ msgstr "生成视频文件..."
 
 msgid "Confirm to remove project?"
 msgstr "确定删除如下项目?"
+
+msgid "Share Your Video"
+msgstr "分享你的视频"
+
+msgid "Back to Scratch"
+msgstr "返回Scratch"

@@ -62,6 +62,7 @@ class App(object):
         user = self.encode(args.get('user'))
         filename = self.encode(args.get('filename'))
         _type = args.get('type') if 'type' in args else 'project'
+        filename = filename.replace(' ', '_')
         # logger.debug("%s, %s, %s" % (user, filename, _type))
 
         template = (App.VIDEO_PATH if _type == 'video' else App.PROJECT_PATH) + App.FILE_TEMPLATE
@@ -71,12 +72,19 @@ class App(object):
             os.makedirs(directory)
 
         _file = template % (user, filename)
+        logger.debug("storing file" + _file)
         with open(_file, 'w') as f:
             f.write(rawbody)
 
         if _type == 'video':
             ofilename = App.FILE_TEMPLATE % (user, filename[:-4]+".mp4")
             outfile = App.SHARE_PATH + ofilename
+
+            share_directory = App.SHARE_PATH + App.FILE_TEMPLATE % (user, '')
+            if not os.path.exists(share_directory):
+                os.makedirs(share_directory)
+
+            logger.debug("generting file" + _file)
             flag = self.convert_video(_file, outfile)
             if flag:
                 # Todo try to qrcode html code directly?

@@ -521,23 +521,13 @@ public class ScratchRuntime {
 				});
            	}
 
-			function saveVideoFile(url:String) {
-				var projectType:String = ".flv";
-				var defaultName:String = StringUtil.trim(Scratch.app.projectName());
-				defaultName = ((defaultName.length > 0) ? defaultName : 'project') + projectType;
-				url = url + "&type=video&filename=" + encodeURIComponent(defaultName);
-				Scratch.app.saveDataToServer(url, video, saveVideoComplete);
-				releaseVideo(false);
-			}
+			var projectType:String = ".flv";
+			var projectName:String = StringUtil.trim(Scratch.app.projectName());
+			projectName = ((projectName.length > 0) ? projectName : 'Untitled') + projectType;
 
-			if(!Scratch.app.jsEnabled) return;
-			Scratch.app.addExternalCallback('ASSaveDataToServer', saveVideoFile);
-			Scratch.app.externalCall('JSSaveDataToServer', function (flag:Boolean):void {
-                Scratch.app.log(LogLevel.DEBUG, 'callback from JSSaveDataToServer');
-            });
-			// Scratch.app.log(LogLevel.TRACK, "Video downloaded", {projectID: app.projectID, seconds: roundToTens(seconds), megabytes: roundToTens(video.length/1000000)});
-			// var specEditor:SharingSpecEditor = new SharingSpecEditor();
-			// DialogBox.close("Playing and Sharing Your Video",null,specEditor,"Back to Scratch");
+			var url:String = Scratch.app.server.getSaveDataURL() + "type=video&filename=" + encodeURIComponent(projectName) + "&user=" + Scratch.app.user;
+			Scratch.app.saveDataToServer(url, video, saveVideoComplete);
+			releaseVideo(false);
         }
 		function releaseVideo(log:Boolean = true):void {
 			if (log) Scratch.app.log(LogLevel.TRACK, "Video canceled", {projectID: app.projectID, seconds: roundToTens(seconds), megabytes: roundToTens(video.length/1000000)});
