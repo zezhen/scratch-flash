@@ -36,6 +36,6 @@ sync $root/webapp scratchonline
 if [ $mode == 'dev' ]; then
     sync $root/bin-debug scratchonline/scratch
 else
-    $root/bin-release scratchonline/scratch
+    sync $root/bin-release scratchonline/scratch
 fi
 

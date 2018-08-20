@@ -81,7 +81,7 @@ class App(object):
             if flag:
                 # Todo try to qrcode html code directly?
                 # <video id = "video_id" width="100%" height="100%" controls="true" src="VIDEO_LINK" type="video/mp4"></video>
-                self.generate_qrcode('http://www.scratchonline.cn:4080/share?video=' + ofilename, outfile[:-4]+'.png')
+                self.generate_qrcode('http://scratch.svachina.com/share?video=' + ofilename, outfile[:-4]+'.png')
                 return file(outfile[:-4]+'.png')
 
         return True
