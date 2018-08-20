@@ -125,14 +125,14 @@ class App(object):
             if not project: return self.error('project name is necessary')
             if (not project.endswith('.sb2')):
                 project += '.sb2'
-            project_file = App.PROJECT_PATH + App.FILE_TEMPLATE % (user, project)
-            try:
+
+            for _u in [user, 'demo', '']:
+                project_file = App.PROJECT_PATH + App.FILE_TEMPLATE % (_u, project)
+                logger.debug(project_file)
+                if not os.path.exists(project_file): continue
                 return file(project_file)
-            except:
-                if project == 'default.sb2':
-                    return file(App.PROJECT_PATH + '/default.sb2')
-                else:
-                    return self.error('project %s is not exist, please try others' % (project_file))
+
+            return self.error('project %s is not exist, please try others' % (project))
 
         elif _type == 'video':
             video = args.get('video')
@@ -155,6 +155,21 @@ class App(object):
             plistStr = ','.join(plist)
             logger.debug(plistStr)
             return plistStr
+
+        elif _type == 'removeproject':
+            project = args.get('project')
+            if not user or user in ['', '/', '.', '..', '*', 'demo', 'guest']:
+                return self.error('invalid user name: ' + user)
+            if not project: return self.error('project name is necessary')
+
+            project_file = App.PROJECT_PATH + App.FILE_TEMPLATE % (user, project)
+            if os.path.exists(project_file) and os.path.isfile(project_file):
+                try:
+                    os.remove(project_file)
+                    return not os.path.exists(project_file)
+                except:
+                    pass
+            return self.error('failed to remove project %s under user %s' % (project, user))
 
         else:
             return self.error('correct type is necessary')
@@ -191,9 +206,9 @@ if __name__ == '__main__':
             'tools.staticdir.on': True,
             'tools.staticdir.dir': 'share'
         },
-        '/js': {
+        '/json': {
             'tools.staticdir.on': True,
-            'tools.staticdir.dir': 'js'
+            'tools.staticdir.dir': 'json'
         },
         '/share.html': {
             'tools.staticfile.on': True,

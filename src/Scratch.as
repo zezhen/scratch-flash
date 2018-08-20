@@ -234,7 +234,7 @@ public class Scratch extends Sprite {
 
 		handleStartupParameters();
 
-		loadProject('default');
+		loadProjectByName('default');
 	}
 
 	protected function handleStartupParameters():void {
@@ -287,7 +287,7 @@ public class Scratch extends Sprite {
 		loader.load(request);
 	}
 
-	public function loadProject(project:String = null): void{
+	public function loadProjectByName(project:String = null): void{
 
 		function loadProjectComplete(_data:ByteArray):void {
 			lp.setInfo("Opening project...")
@@ -310,7 +310,27 @@ public class Scratch extends Sprite {
 		}
 
 		if (app.stagePane.isEmpty() || project == 'default') doInstall();
-		else DialogBox.confirm('Replace contents of the current project?', app.stage, doInstall);
+		else DialogBox.confirm('Replace existing project?', app.stage, doInstall);
+	}
+
+	public function removeProjectByName(project:String): void {
+
+		function removeProjectComplete(_msg:String) {
+			log(LogLevel.DEBUG, 'Remove project: ' + project + " return message: " + _msg);
+		}
+
+		function doRemove() {
+			var url:String = server.getLoadDataURL() + "type=removeproject";
+			if (user == null || project == null) {
+				return;
+			}
+
+			url += '&user=' + user;
+			url += '&project=' + project;
+			loadDataFromUrl(url, removeProjectComplete);
+		}
+
+		DialogBox.notify('Confirm to remove project?', project, app.stage, false, doRemove);
 	}
 
 	protected function jsEditorReady():void {
@@ -1140,7 +1160,7 @@ public class Scratch extends Sprite {
 		m.addItem('Download to your computer', exportProjectToFile);
 		m.addLine();
 		
-		m.addItem('Load from server', loadProjectFromServer);
+		m.addItem('Load from server', loadProjectListFromServer);
 		m.addItem('Save to server', saveProjectToServer);
 		m.addLine();
 
@@ -1189,6 +1209,17 @@ public class Scratch extends Sprite {
 		addEditMenuItems(b, m);
 		var p:Point = b.localToGlobal(new Point(0, 0));
 		m.showOnStage(stage, b.x, topBarPart.bottom() - 1);
+	}
+
+	public function showDemoMenu(b:*):void {
+		var m:Menu = new Menu(null, 'Demo', CSS.topBarColor(), 28);
+		m.addItem('Load Game', loadDemoList);
+		var p:Point = b.localToGlobal(new Point(0, 0));
+		m.showOnStage(stage, b.x, topBarPart.bottom() - 1);
+	}	
+
+	public function loadDemoList() {
+		loadProjectListFromServer('demo');
 	}
 
 	protected function addEditMenuItems(b:*, m:Menu):void {
@@ -1302,17 +1333,20 @@ public class Scratch extends Sprite {
 		loader.load(request);
 	}
 
-	public function loadProjectFromServer():void {
+	public function loadProjectListFromServer(_user:String = null):void {
 
 		function loadProjectListComplete(_data:String):void {
-			addExternalCallback('ASLoadProject', loadProject);
+			addExternalCallback('ASLoadProject', loadProjectByName);
+			addExternalCallback('ASRemoveProject', removeProjectByName);
 			if (jsEnabled) {
 				externalCall('JSListProject("' + _data + '")', function (success:Boolean):void {
 				});
 			}
 		}
-
-		var url:String = server.getLoadDataURL() + "type=listproject&user=" + user;
+		if (_user == null) {
+			_user = user;
+		}
+		var url:String = server.getLoadDataURL() + "type=listproject&user=" + _user;
 		loadDataFromUrl(url, loadProjectListComplete);
 	}
 
@@ -1335,7 +1369,7 @@ public class Scratch extends Sprite {
 		}
 		
 		var projIO:ProjectIO = new ProjectIO(this);
-		DialogBox.confirm('Save current project (' + projectName +  ') to server?', app.stage, doLoad);
+		DialogBox.notify('Save to server', 'You can re-load project from server', app.stage, false, doLoad);
 	}
 
 	public function exportProjectToFile(fromJS:Boolean = false, saveCallback:Function = null):void {
