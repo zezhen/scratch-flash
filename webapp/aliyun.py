@@ -7,11 +7,9 @@ import oss2
 
 class Aliyun(object):
 
-    def __init__(self, logger):
+    def __init__(self, logger, access_key_id, access_key_secret):
         self.logger = logger
 
-        access_key_id = 'LTAIyYjGr5GfOHJF'
-        access_key_secret = 'FDWgHZqMmr0JzYZQxbEsdELaKl75T5'
         mps_region_id = 'cn-hangzhou'
 
         self.oss_internal_location = 'oss-cn-hangzhou-internal'
