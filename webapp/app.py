@@ -1,7 +1,7 @@
 # coding: utf-8
 
 import cherrypy
-import os, socket
+import sys, os, socket
 import ConfigParser
 import subprocess
 import qrcode
@@ -11,6 +11,9 @@ from StringIO import StringIO
 from stat import S_ISREG, ST_MTIME, ST_MODE
 from time import gmtime, strftime
 
+sys.path.append(".")
+from aliyun import Aliyun 
+
 # create logger
 logger = logging.getLogger('cherrypy')
 logger.setLevel(logging.DEBUG)
@@ -19,6 +22,8 @@ fh = logging.FileHandler("/tmp/app.log")
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 fh.setFormatter(formatter)
 logger.addHandler(fh)
+
+aliyunInst = Aliyun(logger)
 
 _hostname = '0.0.0.0'
 _port = 80
@@ -71,36 +76,30 @@ class App(object):
         rawbody = cherrypy.request.body.read(int(cl))
         user = self.encode(args.get('user'))
         filename = self.encode(args.get('filename'))
-        _type = args.get('type') if 'type' in args else 'project'
         filename = filename.replace(' ', '_')
-        # logger.debug("%s, %s, %s" % (user, filename, _type))
-
-        template = (App.VIDEO_PATH if _type == 'video' else App.PROJECT_PATH) + App.FILE_TEMPLATE
-
-        directory = template % (user, '')
-        if not os.path.exists(directory):
-            os.makedirs(directory)
-
-        _file = template % (user, filename)
-        logger.debug("storing file" + _file)
-        with open(_file, 'w') as f:
-            f.write(rawbody)
+        _type = args.get('type') if 'type' in args else 'project'
 
         if _type == 'video':
-            ofilename = App.FILE_TEMPLATE % (user, filename[:-4]+".mp4")
-            outfile = App.SHARE_PATH + ofilename
+            template = App.VIDEO_PATH + App.FILE_TEMPLATE
+            dest = template % (user, file)
+            url = aliyunInst.upload_convert_get_link(user, filename, rawbody)
+            if url:
+                self.generate_qrcode(url, filename +'.png')
+                return file(filename +'.png')
+            else:
+                return self.error('converting video failed')
 
-            share_directory = App.SHARE_PATH + App.FILE_TEMPLATE % (user, '')
-            if not os.path.exists(share_directory):
-                os.makedirs(share_directory)
+        elif _type == 'project':
 
-            logger.debug("generting file" + _file)
-            flag = self.convert_video(_file, outfile)
-            if flag:
-                # Todo try to qrcode html code directly?
-                # <video id = "video_id" width="100%" height="100%" controls="true" src="VIDEO_LINK" type="video/mp4"></video>
-                self.generate_qrcode('http://scratch.svachina.com/share?video=' + ofilename, outfile[:-4]+'.png')
-                return file(outfile[:-4]+'.png')
+            template = App.PROJECT_PATH + App.FILE_TEMPLATE
+            directory = template % (user, '')
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+
+            _file = template % (user, filename)
+            logger.debug("storing file" + _file)
+            with open(_file, 'w') as f:
+                f.write(rawbody)
 
         return True
 
