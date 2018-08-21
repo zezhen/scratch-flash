@@ -123,7 +123,7 @@ class App(object):
             return serve_file(os.getcwd() + '/share/'+video)
 
     def convert_video(self, infile, outfile, to_format='mp4'):
-        command = "ffmpeg -i %s -f %s -vcodec libx264 -vf format=yuv420p -acodec libmp3lame %s;" % (infile, to_format, outfile)
+        command = "ffmpeg -i %s -f %s -vcodec libx264 -vf format=yuv420p -acodec libmp3lame -preset ultrafast %s;" % (infile, to_format, outfile)
         subprocess.call(command, shell=True)
         return os.path.isfile(outfile)
 
