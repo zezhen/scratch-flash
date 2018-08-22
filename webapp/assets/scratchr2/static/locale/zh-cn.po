@@ -1173,6 +1173,9 @@ msgstr "运行时不刷新屏幕"
 msgid "Running pre-release"
 msgstr "正在运行预发行版本"
 
+msgid "Start"
+msgstr "开始"
+
 msgid "Save"
 msgstr "保存"
 

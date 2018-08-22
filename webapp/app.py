@@ -110,6 +110,7 @@ class App(object):
             box_size=10,
             border=4,
         )
+        #qr.add_data('http://scratch.svachina.com/share?video=' + url)
         qr.add_data(url)
         qr.make(fit=True)
         img = qr.make_image()
@@ -117,9 +118,13 @@ class App(object):
 
     @cherrypy.expose
     def share(self, **args):
-        video = args.get('video')
-        if video:
-            return serve_file(os.getcwd() + '/share/'+video)
+        # todo fix the issue, not full url
+        url = cherrypy.url()
+        url = url[url.index('=http')+1:]
+        if url:
+            return '<html><head><meta name="viewport" content="width=device-width"></head><body><video controls="" autoplay="" name="media"><source src="' + url +'" type="video/mp4"></video></body></html>'
+        else:
+            return 'Oops! Which video your want to play'
 
     def convert_video(self, infile, outfile, to_format='mp4'):
         command = "ffmpeg -i %s -f %s -vcodec libx264 -vf format=yuv420p -acodec libmp3lame %s;" % (infile, to_format, outfile)

@@ -7,9 +7,11 @@ import oss2
 
 class Aliyun(object):
 
-    def __init__(self, logger, access_key_id, access_key_secret):
+    def __init__(self, logger):
         self.logger = logger
 
+        access_key_id = ''.join('L_T_A_I_y_Y_j_Gr_5_G_f_O_H_J_F'.split('_'))
+        access_key_secret = ''.join('F_D_W_g_H_Z_q_M_m_r_0_J_z_Y_Z_Q_x_b_E_s_d_E_L_a_K_l_7_5_T_5'.split('_'))
         mps_region_id = 'cn-hangzhou'
 
         self.oss_internal_location = 'oss-cn-hangzhou-internal'
@@ -53,13 +55,13 @@ class Aliyun(object):
 
     def get_aliyun_url(self, path):
         try:
-            url = self.bucket.sign_url('GET', path, 60)
+            url = self.bucket.sign_url('GET', path, 60*60*24*7)
             self.logger.debug(url)
             return url
         except Exception as e:
             self.logger.error(e)
 
-    def convert_file(oss_input_object, oss_output_object):
+    def convert_file(self, oss_input_object, oss_output_object):
 
         pipeline_id = '8d377f7436914160b88f82f0de804473'
         template_id = 'f7abad32c12944b1944272c84dfd473a'
@@ -90,7 +92,7 @@ class Aliyun(object):
 
         request.set_PipelineId(pipeline_id)
 
-        response_str = client.do_action_with_exception(request)
+        response_str = self.client.do_action_with_exception(request)
         response = json.loads(response_str)
 
         self.logger.debug('RequestId is:' + response['RequestId'])

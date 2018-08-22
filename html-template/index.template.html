@@ -186,6 +186,18 @@
                 return true;
             }
 
+            function JSLoading(startOrStop) {
+
+                if(startOrStop == 'start') {
+                    $('#modalbody').text("");
+                    $('#modalbody').append('<img src="/scratch/loading.gif"></img>');
+                    $('#modallongtitle').text("");
+                    $('#button').click();
+                } else if(startOrStop == 'stop') {
+                    $('#cancel').click();
+                }
+            }
+
             // For version detection, set to min. required Flash Player version, or 0 (or 0.0.0), for no version detection. 
             var swfVersionStr = "${version_major}.${version_minor}.${version_revision}";
             // To use express install, set to playerProductInstall.swf, otherwise the empty string. 

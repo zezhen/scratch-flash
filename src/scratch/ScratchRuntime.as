@@ -517,6 +517,7 @@ public class ScratchRuntime {
 				    var loaderInfo:LoaderInfo = LoaderInfo(event.target);
 				    var bitmapData:BitmapData = new BitmapData(loaderInfo.width, loaderInfo.height, false, 0xFFFFFF);
 				    bitmapData.draw(loaderInfo.loader);
+				    app.externalCall('JSLoading("stop")', function (success:Boolean):void {});
 				    DialogBox.close("Share Your Video",null,new Bitmap(bitmapData),"Back to Scratch");
 				});
            	}
@@ -528,6 +529,7 @@ public class ScratchRuntime {
 			var url:String = Scratch.app.server.getSaveDataURL() + "type=video&filename=" + encodeURIComponent(projectName) + "&user=" + Scratch.app.user;
 			Scratch.app.saveDataToServer(url, video, saveVideoComplete);
 			releaseVideo(false);
+			app.externalCall('JSLoading("start")', function (success:Boolean):void {});
         }
 		function releaseVideo(log:Boolean = true):void {
 			if (log) Scratch.app.log(LogLevel.TRACK, "Video canceled", {projectID: app.projectID, seconds: roundToTens(seconds), megabytes: roundToTens(video.length/1000000)});
@@ -809,7 +811,7 @@ public class ScratchRuntime {
 			fileName = file.name;
 			data = file.data;
 			if (app.stagePane.isEmpty()) doInstall();
-			else DialogBox.confirm('Replace contents of the current project?', app.stage, doInstall);
+			else DialogBox.confirm('Replace existing project?', app.stage, doInstall);
 		}
 		function doInstall(ignore:* = null):void {
 			installProjectFromFile(fileName, data);
