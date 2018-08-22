@@ -38,8 +38,7 @@ class Aliyun(object):
         res = self.convert_file(src_path, dest_path)
         if not res: return None
 
-        url = self.get_aliyun_url(dest_path)
-        return url
+        return dest_path
 
     def upload_local_file(self, src, dest):
         with open(src, 'rb') as fileobj:

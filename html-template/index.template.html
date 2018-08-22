@@ -102,6 +102,7 @@
                 "time": "Last Modified Time",
                 "remove": "Remove",
                 "cancel": "Cancel",
+                "loading": "Loading....",
                 "foo": {
                     "bar": "foo"
                 }
@@ -187,11 +188,11 @@
             }
 
             function JSLoading(startOrStop) {
-
+                var loading = i18n.getItem('loading');
                 if(startOrStop == 'start') {
                     $('#modalbody').text("");
-                    $('#modalbody').append('<img src="/scratch/loading.gif"></img>');
-                    $('#modallongtitle').text("");
+                    $('#modalbody').append('<img height="100%" width="100%" src="/scratch/loading.gif"></img>');
+                    $('#modallongtitle').text(loading);
                     $('#button').click();
                 } else if(startOrStop == 'stop') {
                     $('#cancel').click();
