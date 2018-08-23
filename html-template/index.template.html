@@ -110,8 +110,8 @@
 
             $.getJSON("json/zh-cn.json", function (data) {
                 $.i18n['zh-cn'] = data;
+                JSChangeLang('zh-cn');
             });
-
 
             var i18n = $.i18n()
 
@@ -121,11 +121,12 @@
                 return true;
             }
 
+            JSChangeLang('en');
+
         </script>
         <script type="text/javascript">
             window.SWFready=$.Deferred(); // Deferred makes sure we don't call ASSetEditMode before SWF is ready.
             var webappUrl = window.location.protocol + '//' + window.location.host + '/';
-            console.log(webappUrl);
 
             function getObject(objectName) {
                 if (navigator.appName.indexOf("icrosoft") != -1) {
@@ -181,6 +182,7 @@
             function JSeditorReady() {
                 try {
                     SWFready.resolve();
+                    JSLoading('stop');
                 } catch (error) {
                     throw error;
                 }
@@ -193,9 +195,11 @@
                     $('#modalbody').text("");
                     $('#modalbody').append('<img height="100%" width="100%" src="/scratch/loading.gif"></img>');
                     $('#modallongtitle').text(loading);
+                    $('#cancel').hide();
                     $('#button').click();
                 } else if(startOrStop == 'stop') {
                     $('#cancel').click();
+                    $('#cancel').show();
                 }
             }
 
@@ -251,7 +255,7 @@
             swfobject.createCSS("#flashContent", "display:block;text-align:left;");
         </script>
     </head>
-    <body>
+    <body onload="JSLoading('start')">
         <!-- SWFObject's dynamic embed method replaces this alternative HTML content with Flash content when enough 
              JavaScript and Flash plug-in support is available. The div is initially hidden so that it doesn't show
              when JavaScript is disabled.
