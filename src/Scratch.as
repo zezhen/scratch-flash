@@ -1155,19 +1155,22 @@ public class Scratch extends Sprite {
 	}
 
 	protected function addFileMenuItems(b:*, m:Menu):void {
-		
+		var isGuest:Boolean = (user == null || user.toLowerCase() == "guest");
+
 		m.addItem('Upload from your computer', runtime.selectProjectFile);
 		m.addItem('Download to your computer', exportProjectToFile);
 		m.addLine();
 		
-		m.addItem('Load from server', loadProjectListFromServer);
-		m.addItem('Save to server', saveProjectToServer);
-		m.addLine();
-
-		if (runtime.recording || runtime.ready==ReadyLabel.COUNTDOWN || runtime.ready==ReadyLabel.READY) {
-			m.addItem('Stop Video', runtime.stopVideo);
-		} else {
-			m.addItem('Record Project Video', runtime.exportToVideo);
+		if(! isGuest) {
+			m.addItem('Load from server', loadProjectListFromServer);
+			m.addItem('Save to server', saveProjectToServer);
+			m.addLine();
+		
+			if (runtime.recording || runtime.ready==ReadyLabel.COUNTDOWN || runtime.ready==ReadyLabel.READY) {
+				m.addItem('Stop Video', runtime.stopVideo);
+			} else {
+				m.addItem('Record Project Video', runtime.exportToVideo);
+			}
 		}
 		if (canUndoRevert()) {
 			m.addLine();
