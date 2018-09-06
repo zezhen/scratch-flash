@@ -1219,7 +1219,30 @@ public class Scratch extends Sprite {
 		m.addItem('Load Game', loadDemoList);
 		var p:Point = b.localToGlobal(new Point(0, 0));
 		m.showOnStage(stage, b.x, topBarPart.bottom() - 1);
-	}	
+	}
+
+	public function showSubscribeMenu(b:*):void {
+		var m:Menu = new Menu(null, 'Subscribe', CSS.topBarColor(), 28);
+		m.addItem('Subscribe Webchat Official Account', showSubscribeInfo);
+		var p:Point = b.localToGlobal(new Point(0, 0));
+		m.showOnStage(stage, b.x, topBarPart.bottom() - 1);
+	}
+
+	public function showSubscribeInfo() {
+		function loadSubscribeInfoComplete(_data:ByteArray) {
+    		var loader:Loader = new Loader();
+			loader.loadBytes(_data);
+			loader.contentLoaderInfo.addEventListener(Event.COMPLETE, function(event:Event):void {
+			    var loaderInfo:LoaderInfo = LoaderInfo(event.target);
+			    var bitmapData:BitmapData = new BitmapData(loaderInfo.width, loaderInfo.height, false, 0xFFFFFF);
+			    bitmapData.draw(loaderInfo.loader);
+			    DialogBox.close("Subscribe Webchat Official Account",null,new Bitmap(bitmapData),"Back to Scratch");
+			});
+		}
+
+		var url:String = Scratch.app.server.getLoadDataURL() + "type=subscribe&user=" + Scratch.app.user;
+		loadDataFromUrl(url, loadSubscribeInfoComplete);
+	}
 
 	public function loadDemoList() {
 		loadProjectListFromServer('demo');

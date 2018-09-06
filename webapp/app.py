@@ -11,9 +11,6 @@ from StringIO import StringIO
 from stat import S_ISREG, ST_MTIME, ST_MODE
 from time import gmtime, strftime
 
-sys.path.append(".")
-from aliyun import Aliyun 
-
 # create logger
 logger = logging.getLogger('cherrypy')
 logger.setLevel(logging.DEBUG)
@@ -23,7 +20,13 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 fh.setFormatter(formatter)
 logger.addHandler(fh)
 
-aliyunInst = Aliyun(logger)
+sys.path.append(".")
+try:
+    from aliyun import Aliyun
+    aliyunInst = Aliyun(logger)
+except:
+    pass
+
 
 _hostname = '0.0.0.0'
 _port = 80
@@ -195,6 +198,8 @@ class App(object):
                     pass
             return self.error('failed to remove project %s under user %s' % (project, user))
 
+        elif _type == 'subscribe':
+            return file('assets/wechat_official_account.jpg')
         else:
             return self.error('correct type is necessary')
 

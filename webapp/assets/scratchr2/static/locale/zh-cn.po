@@ -1981,3 +1981,9 @@ msgstr "分享你的视频"
 
 msgid "Back to Scratch"
 msgstr "返回Scratch"
+
+msgid "Subscribe Webchat Official Account"
+msgstr "关注微信公众号"
+
+msgid "Subscribe"
+msgstr "关注"

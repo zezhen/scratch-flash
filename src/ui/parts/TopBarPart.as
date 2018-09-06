@@ -44,6 +44,7 @@ public class TopBarPart extends UIPart {
 	protected var fileMenu:IconButton;
 	protected var editMenu:IconButton;
 	protected var gameMenu:IconButton;
+	protected var subsMenu:IconButton;
 
 	private var copyTool:IconButton;
 	private var cutTool:IconButton;
@@ -94,6 +95,7 @@ public class TopBarPart extends UIPart {
 			Scratch.app.showFileMenu(Menu.dummyButton());
 			Scratch.app.showEditMenu(Menu.dummyButton());
 			Scratch.app.showDemoMenu(Menu.dummyButton());
+			Scratch.app.showSubscribeMenu(Menu.dummyButton());
 		}
 		return ['File', 'Edit', 'Tips', 'Duplicate', 'Delete', 'Grow', 'Shrink', 'Block help', 'Offline Editor'];
 	}
@@ -103,6 +105,7 @@ public class TopBarPart extends UIPart {
 			removeChild(fileMenu);
 			removeChild(editMenu);
 			removeChild(gameMenu);
+			removeChild(subsMenu);
 		}
 	}
 
@@ -156,6 +159,10 @@ public class TopBarPart extends UIPart {
 		gameMenu.x = nextX;
 		gameMenu.y = buttonY;
 		nextX += gameMenu.width + buttonSpace;
+
+		subsMenu.x = nextX;
+		subsMenu.y = buttonY;
+		nextX += subsMenu.width + buttonSpace;
 
 		// cursor tool buttons
 		var space:int = 3;
@@ -216,6 +223,7 @@ public class TopBarPart extends UIPart {
 		addChild(fileMenu = makeMenuButton('File', app.showFileMenu, true));
 		addChild(editMenu = makeMenuButton('Edit', app.showEditMenu, true));
 		addChild(gameMenu = makeMenuButton('Demo', app.showDemoMenu, true));
+		addChild(subsMenu = makeMenuButton('Subscribe', app.showSubscribeMenu, true));
 	}
 
 	private function addToolButtons():void {
