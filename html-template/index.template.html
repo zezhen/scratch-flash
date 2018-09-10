@@ -179,10 +179,16 @@
                 $('#button').click();
             }
 
+            function setWelcome() {
+                var welcome = i18n.getItem('welcome');
+                 $('#welcome').text(welcome);
+            }
+
             function JSeditorReady() {
                 try {
                     SWFready.resolve();
                     JSLoading('stop');
+                    setWelcome();
                 } catch (error) {
                     throw error;
                 }
@@ -223,7 +229,7 @@
                     loadDataAction: "load?",
                     saveDataAction: "save?",
                 },
-                user: '__USER__',
+                user: '__USERID__',
                 project_isPrivate: 'true',
                 project_isNew: 'true',
                 inIE: (navigator.userAgent.indexOf('MSIE') > -1)
@@ -293,6 +299,8 @@
                                 + pageHost + "www.adobe.com/images/shared/download_buttons/get_flash_player.gif' alt='Get Adobe Flash player' /></a>" ); 
             </script> 
         </div>
+
+        <div><span style="position: absolute; top: 0px; right: 10px;"><span id="welcome">Welcome</span> __USERNAME__ </span></div>
         
         <noscript>
             <object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" width="${width}" height="${height}" id="${application}">

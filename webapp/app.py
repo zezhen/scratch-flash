@@ -63,14 +63,16 @@ class App(object):
 
     @cherrypy.expose
     def index(self, **args):
-        return file('scratch/Scratch.html')
+        return self.ide(**args)
 
     @cherrypy.expose
     def ide(self, **args):
         uid = args.get('userid') if 'userid' in args else 'Guest'
         uname = args.get('username') if 'username' in args else 'Guest'
+        logger.debug(uid + "  " + uname)
         content = "".join(file('scratch/Scratch.html').readlines())
-        content = content.replace('__USER__', uid)
+        content = content.replace('__USERID__', uid)
+        content = content.replace('__USERNAME__', uname)
         content = content.replace('__SUBSCRIBE_INFO__', aliyunInst.get_aliyun_url('img/wechat_official_account.png', True))
         return StringIO(unicode(content))
 
