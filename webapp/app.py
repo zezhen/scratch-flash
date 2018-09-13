@@ -63,7 +63,7 @@ class App(object):
 
     @cherrypy.expose
     def index(self, **args):
-        return file('scratch/Scratch.html')
+        return file('scratch/homepage.html')
 
     @cherrypy.expose
     def ide(self, **args):
@@ -238,6 +238,22 @@ if __name__ == '__main__':
         '/json': {
             'tools.staticdir.on': True,
             'tools.staticdir.dir': 'json'
+        },
+        '/js': {
+            'tools.staticdir.on': True,
+            'tools.staticdir.dir': 'js'
+        },
+        '/css': {
+            'tools.staticdir.on': True,
+            'tools.staticdir.dir': 'css'
+        },
+        '/images': {
+            'tools.staticdir.on': True,
+            'tools.staticdir.dir': 'images'
+        },
+        '/svgs': {
+            'tools.staticdir.on': True,
+            'tools.staticdir.dir': 'svgs'
         },
         '/share.html': {
             'tools.staticfile.on': True,
