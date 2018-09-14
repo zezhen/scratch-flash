@@ -206,18 +206,6 @@ if __name__ == '__main__':
             'tools.staticdir.on': True,
             'tools.staticdir.dir': 'scratch'
         },
-        '/share': {
-            'tools.staticdir.on': True,
-            'tools.staticdir.dir': 'share'
-        },
-        '/json': {
-            'tools.staticdir.on': True,
-            'tools.staticdir.dir': 'json'
-        },
-        '/share.html': {
-            'tools.staticfile.on': True,
-            'tools.staticfile.filename': working_directory + '/scratch/share.html'
-        },
         '/crossdomain.xml': {
             'tools.staticfile.on': True,
             'tools.staticfile.filename': working_directory + '/crossdomain.xml'
