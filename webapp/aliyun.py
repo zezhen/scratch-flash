@@ -52,13 +52,13 @@ class Aliyun(object):
             self.logger.error(e)
             return False
 
-    def get_aliyun_url(self, path):
-        try:
+    def get_aliyun_url(self, path, is_public=False):
+        if not is_public:
             url = self.bucket.sign_url('GET', path, 60*60*24*7)
             self.logger.debug(url)
             return url
-        except Exception as e:
-            self.logger.error(e)
+        else:
+            return 'http://%s.%s.aliyuncs.com/%s' % (self.oss_bucket, self.oss_location, path)
 
     def is_object_exist(self, path):
         return self.bucket.object_exists(path)

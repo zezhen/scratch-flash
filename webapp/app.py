@@ -71,6 +71,7 @@ class App(object):
         uname = args.get('username') if 'username' in args else 'Guest'
         content = "".join(file('scratch/Scratch.html').readlines())
         content = content.replace('__USER__', uid)
+        content = content.replace('__SUBSCRIBE_INFO__', aliyunInst.get_aliyun_url('img/wechat_official_account.png', True))
         return StringIO(unicode(content))
 
     @cherrypy.expose
@@ -192,7 +193,7 @@ class App(object):
             return True
 
         elif _type == 'subscribe':
-            return aliyunInst.get_aliyun_url('img/wechat_official_account.jpg')
+            return aliyunInst.get_aliyun_url('img/wechat_official_account.png', True)
         else:
             return self.error('correct type is necessary')
 
