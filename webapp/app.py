@@ -151,7 +151,7 @@ class App(object):
 
         elif _type == 'listproject':
             path = App.PROJECT_PATH + App.FILE_TEMPLATE % (user, '')
-            entries = aliyunInst.list_files(path)
+            entries = aliyunInst.list_files(path, 'sb2')
             plist = map(lambda (ts, path): "|".join((os.path.basename(path)[:-len(".sb2")], strftime("%Y-%m-%d %H:%M:%S", gmtime(ts)))), sorted(entries))
 
             plistStr = ','.join(plist)
