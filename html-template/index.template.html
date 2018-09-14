@@ -41,8 +41,7 @@
 
         <script type="text/javascript">
             var webappUrl = window.location.protocol + '//' + window.location.host + '/';
-            var cdnUrl = '__CDN_URL__';
-
+            var cdnUrl = webappUrl; // need to change to another domain 
 
             $.i18n = function(options){
                 options = $.extend({}, {
@@ -112,7 +111,7 @@
                 }
             }
 
-            $.getJSON(cdnUrl + "static/json/zh-cn.json", function (data) {
+            $.getJSON("static/json/zh-cn.json", function (data) {
                 $.i18n['zh-cn'] = data;
                 JSChangeLang('zh-cn');
             });

@@ -201,10 +201,6 @@ if __name__ == '__main__':
             'tools.sessions.on': True,
             'tools.staticdir.root': os.path.abspath(working_directory)
         },
-        '/assets': {
-            'tools.staticdir.on': True,
-            'tools.staticdir.dir': 'assets'
-        },
         '/scratch': {
             'tools.staticdir.on': True,
             'tools.staticdir.dir': 'scratch'
