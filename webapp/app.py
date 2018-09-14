@@ -128,16 +128,6 @@ class App(object):
         else:
             return 'Oops! Cannot find the video to play'
 
-    def convert_video(self, infile, outfile, to_format='mp4'):
-        command = "ffmpeg -i %s -f %s -vcodec libx264 -vf format=yuv420p -acodec libmp3lame %s;" % (infile, to_format, outfile)
-        subprocess.call(command, shell=True)
-        return os.path.isfile(outfile)
-
-    def list_files(self, user, _type):
-        type_dir = App.VIDEO_PATH if _type == 'video' else App.PROJECT_PATH
-        logger.info(type_dir)
-        return [f[len(user)+1:] for f in os.listdir(type_dir) if f.startswith(user)]
-
     @cherrypy.expose
     def load(self, **args):
         user = self.encode(args.get('user'))
@@ -158,15 +148,6 @@ class App(object):
                     return aliyunInst.get_aliyun_url(project_file)
                 
             return self.error('project %s is not exist, please try others' % (project))
-
-        elif _type == 'video':
-            video = args.get('video')
-            if not video: return self.error('video name is necessary')
-            video_file = App.VIDEO_PATH + App.FILE_TEMPLATE % (user, video)
-            try:
-                return file(video_file)
-            except:
-                return self.error('video %s is not exist, please try others' % (video_file))
 
         elif _type == 'listproject':
             path = App.PROJECT_PATH + App.FILE_TEMPLATE % (user, '')
