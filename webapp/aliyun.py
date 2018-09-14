@@ -71,6 +71,9 @@ class Aliyun(object):
     def remove_object(self, path):
         self.bucket.delete_object(path)
 
+    def get_cdn_url():
+        return 'http://cdn.svachina.com/'
+
     def convert_file(self, oss_input_object, oss_output_object):
 
         pipeline_id = '8d377f7436914160b88f82f0de804473'

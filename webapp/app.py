@@ -9,7 +9,7 @@ import logging
 from cherrypy.lib.static import serve_file
 from StringIO import StringIO
 from stat import S_ISREG, ST_MTIME, ST_MODE
-from time import gmtime, strftime
+from time import gmtime, strftime, sleep
 
 # create logger
 logger = logging.getLogger('cherrypy')
@@ -35,8 +35,7 @@ s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 try:
     s.bind((_hostname, _port))
 except socket.error as e:
-    logger.debug('port 80 is in used, try to use 4080')
-    _port = 4080
+    sleep(3)
 
 server_config = {
     'server.socket_host': _hostname,
@@ -77,7 +76,8 @@ class App(object):
         content = "".join(file('scratch/Scratch.html').readlines())
         content = content.replace('__USERID__', uid)
         content = content.replace('__USERNAME__', uname)
-        content = content.replace('__SUBSCRIBE_INFO__', aliyunInst.get_aliyun_url('img/wechat_official_account.png', True))
+        content = content.replace('__SUBSCRIBE_INFO__', aliyunInst.get_aliyun_url('static/wechat_official_account.jpg', True))
+        content = content.replace('__CDN_URL__', aliyunInst.get_cdn_url())
         return StringIO(unicode(content))
 
     @cherrypy.expose
@@ -180,7 +180,7 @@ class App(object):
             return True
 
         elif _type == 'subscribe':
-            return aliyunInst.get_aliyun_url('img/wechat_official_account.png', True)
+            return aliyunInst.get_aliyun_url('static/wechat_official_account.jpg', True)
         else:
             return self.error('correct type is necessary')
 

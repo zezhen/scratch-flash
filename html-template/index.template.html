@@ -40,6 +40,10 @@
         <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
 
         <script type="text/javascript">
+            var webappUrl = window.location.protocol + '//' + window.location.host + '/';
+            var cdnUrl = '__CDN_URL__';
+
+
             $.i18n = function(options){
                 options = $.extend({}, {
                     lang: 'en',
@@ -108,7 +112,7 @@
                 }
             }
 
-            $.getJSON("assets/json/zh-cn.json", function (data) {
+            $.getJSON(cdnUrl + "static/json/zh-cn.json", function (data) {
                 $.i18n['zh-cn'] = data;
                 JSChangeLang('zh-cn');
             });
@@ -126,8 +130,7 @@
         </script>
         <script type="text/javascript">
             window.SWFready=$.Deferred(); // Deferred makes sure we don't call ASSetEditMode before SWF is ready.
-            var webappUrl = window.location.protocol + '//' + window.location.host + '/';
-
+            
             function getObject(objectName) {
                 if (navigator.appName.indexOf("icrosoft") != -1) {
                     return window[objectName+'IE'];
@@ -218,11 +221,11 @@
                 autostart: 'false',
                 urlOverrides: {
                     sitePrefix: webappUrl,
-                    siteCdnPrefix: webappUrl + "assets/",
-                    assetPrefix: webappUrl + "assets/",
-                    assetCdnPrefix: webappUrl + "assets/",
-                    projectPrefix: webappUrl + "assets/",
-                    projectCdnPrefix: webappUrl + "assets/",
+                    siteCdnPrefix: cdnUrl + "static/",
+                    assetPrefix: cdnUrl + "static/",
+                    assetCdnPrefix: cdnUrl + "static/",
+                    projectPrefix: cdnUrl + "static/",
+                    projectCdnPrefix: cdnUrl + "static/",
                     internalAPI: "internalapi/",
                     siteAPI: "site-api/",
                     staticFiles: "scratchr2/static/",
