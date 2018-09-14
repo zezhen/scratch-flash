@@ -72,6 +72,7 @@ class App(object):
         content = "".join(file('scratch/Scratch.html').readlines())
         content = content.replace('__USER__', uid)
         content = content.replace('__SUBSCRIBE_INFO__', aliyunInst.get_aliyun_url('img/wechat_official_account.png', True))
+        content = content.replace('__CDN_URL__', aliyunInst.get_aliyun_url('', True))
         return StringIO(unicode(content))
 
     @cherrypy.expose
