@@ -74,6 +74,7 @@ class App(object):
         content = content.replace('__USERID__', uid)
         content = content.replace('__USERNAME__', uname)
         content = content.replace('__SUBSCRIBE_INFO__', aliyunInst.get_aliyun_url('img/wechat_official_account.png', True))
+        content = content.replace('__CDN_URL__', aliyunInst.get_aliyun_url('', True))
         return StringIO(unicode(content))
 
     @cherrypy.expose
