@@ -60,6 +60,17 @@ class Aliyun(object):
         except Exception as e:
             self.logger.error(e)
 
+    def is_object_exist(self, path):
+        return self.bucket.object_exists(path)
+
+    def list_files(self, path, suffix=''):
+        return [ (o.last_modified, o.key) \
+            for o in oss2.ObjectIterator(self.bucket, prefix = path) \
+            if o.key.endswith(suffix)]
+
+    def remove_object(self, path):
+        self.bucket.delete_object(path)
+
     def convert_file(self, oss_input_object, oss_output_object):
 
         pipeline_id = '8d377f7436914160b88f82f0de804473'

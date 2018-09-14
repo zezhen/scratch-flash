@@ -287,6 +287,8 @@ public class Scratch extends Sprite {
 		loader.load(request);
 	}
 
+
+
 	public function loadProjectByName(project:String = null): void{
 
 		function loadProjectComplete(_data:ByteArray):void {
@@ -294,6 +296,10 @@ public class Scratch extends Sprite {
 			runtime.installProjectFromData(_data);
 			setProjectName(project);
 			removeLoadProgressBox();
+		}
+
+		function loadProjectFromUrl(url:String):void {
+			loadDataFromUrl(url, loadProjectComplete);
 		}
 
 		function doInstall() {
@@ -306,7 +312,7 @@ public class Scratch extends Sprite {
 			}
 			
 			addLoadProgressBox("Loading from Server...");
-			loadDataFromUrl(url, loadProjectComplete);
+			loadDataFromUrl(url, loadProjectFromUrl);
 		}
 
 		if (app.stagePane.isEmpty() || project == 'default') doInstall();
@@ -1240,8 +1246,12 @@ public class Scratch extends Sprite {
 			});
 		}
 
+		function loadSubscribeInfoFromUrl(url:String):void {
+			loadDataFromUrl(url, loadSubscribeInfoComplete);
+		}
+
 		var url:String = Scratch.app.server.getLoadDataURL() + "type=subscribe&user=" + Scratch.app.user;
-		loadDataFromUrl(url, loadSubscribeInfoComplete);
+		loadDataFromUrl(url, loadSubscribeInfoFromUrl);
 	}
 
 	public function loadDemoList() {

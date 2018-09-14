@@ -95,14 +95,10 @@ class App(object):
         elif _type == 'project':
 
             template = App.PROJECT_PATH + App.FILE_TEMPLATE
-            directory = template % (user, '')
-            if not os.path.exists(directory):
-                os.makedirs(directory)
+            dest = template % (user, filename)
+            status = aliyunInst.upload_bytes(dest, rawbody)
 
-            _file = template % (user, filename)
-            logger.debug("storing file" + _file)
-            with open(_file, 'w') as f:
-                f.write(rawbody)
+            logger.debug("uploading project to %s and return code %s." % (dest, str(status)))
 
         return True
 
@@ -153,12 +149,13 @@ class App(object):
             if (not project.endswith('.sb2')):
                 project += '.sb2'
 
-            for _u in [user, 'demo', '']:
+            for _u in [user, 'demo', 'default']:
                 project_file = App.PROJECT_PATH + App.FILE_TEMPLATE % (_u, project)
                 logger.debug(project_file)
-                if not os.path.exists(project_file): continue
-                return file(project_file)
 
+                if aliyunInst.is_object_exist(project_file):
+                    return aliyunInst.get_aliyun_url(project_file)
+                
             return self.error('project %s is not exist, please try others' % (project))
 
         elif _type == 'video':
@@ -171,35 +168,31 @@ class App(object):
                 return self.error('video %s is not exist, please try others' % (video_file))
 
         elif _type == 'listproject':
-            pdir = App.PROJECT_PATH + App.FILE_TEMPLATE % (user, '')
-            if not os.path.exists(pdir): return ''
-            
-            entries = (os.path.join(pdir, fn) for fn in os.listdir(pdir) if fn.endswith('sb2'))
-            entries = ((os.stat(path), path) for path in entries)
-            entries = ((stat[ST_MTIME], path) for stat, path in entries if S_ISREG(stat[ST_MODE]))
+            path = App.PROJECT_PATH + App.FILE_TEMPLATE % (user, '')
+            entries = aliyunInst.list_files(path)
+            plist = map(lambda (ts, path): "|".join((os.path.basename(path)[:-len(".sb2")], strftime("%Y-%m-%d %H:%M:%S", gmtime(ts)))), sorted(entries))
 
-            plist = map(lambda (mdate, path): "|".join((os.path.basename(path)[:-len(".sb2")], strftime("%Y-%m-%d %H:%M:%S", gmtime(mdate)))), sorted(entries))
             plistStr = ','.join(plist)
             logger.debug(plistStr)
             return plistStr
 
         elif _type == 'removeproject':
             project = args.get('project')
-            if not user or user in ['', '/', '.', '..', '*', 'demo', 'guest']:
+            if not user or user in ['', '/', '.', '..', '*', 'demo', 'guest', 'default']:
                 return self.error('invalid user name: ' + user)
             if not project: return self.error('project name is necessary')
 
+            if not project.endswith('.sb2'):
+                project += '.sb2'
+
             project_file = App.PROJECT_PATH + App.FILE_TEMPLATE % (user, project)
-            if os.path.exists(project_file) and os.path.isfile(project_file):
-                try:
-                    os.remove(project_file)
-                    return not os.path.exists(project_file)
-                except:
-                    pass
-            return self.error('failed to remove project %s under user %s' % (project, user))
+            if aliyunInst.is_object_exist(project_file):
+                aliyunInst.remove_object(project_file)
+            
+            return True
 
         elif _type == 'subscribe':
-            return file('assets/wechat_official_account.jpg')
+            return aliyunInst.get_aliyun_url('img/wechat_official_account.jpg')
         else:
             return self.error('correct type is necessary')
 
