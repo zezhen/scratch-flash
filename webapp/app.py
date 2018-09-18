@@ -63,7 +63,7 @@ class App(object):
 
     @cherrypy.expose
     def index(self, **args):
-        return self.ide(**args)
+        return file('scratch/tutorial.html')
 
     @cherrypy.expose
     def ide(self, **args):
