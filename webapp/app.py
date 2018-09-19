@@ -63,7 +63,11 @@ class App(object):
 
     @cherrypy.expose
     def index(self, **args):
-        return file('scratch/tutorial.html')
+        url = cherrypy.url()
+        if 'scratch.svachina.com' in url:
+            return self.ide(**args)
+        else
+            return file('scratch/tutorial.html')
 
     @cherrypy.expose
     def ide(self, **args):

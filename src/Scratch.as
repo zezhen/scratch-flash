@@ -1400,7 +1400,10 @@ public class Scratch extends Sprite {
 		}
 
 		function doLoad() {
-			if (loadInProgress) return;
+			if (loadInProgress) {
+				logger.log(LogLevel.DEBUG, 'loadInProgress is true, skip loading...')
+				return;
+			}
 			projIO.convertSqueakSounds(stagePane, saveCurrentProject);	
 		}
 		
