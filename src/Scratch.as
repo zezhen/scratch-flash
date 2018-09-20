@@ -109,6 +109,7 @@ public class Scratch extends Sprite {
 	public var loadInProgress:Boolean;
 	public var debugOps:Boolean = false;
 	public var debugOpCmd:String = '';
+	public var user:String = '';
 
 	protected var autostart:Boolean;
 	private var viewedObject:ScratchObj;
@@ -169,8 +170,12 @@ public class Scratch extends Sprite {
 		isOffline = true;
 		log(LogLevel.DEBUG, loaderInfo.url);
 		log(LogLevel.DEBUG, "set isOffline to " + isOffline);
-
 		hostProtocol = URLUtil.getProtocol(loaderInfo.url);
+
+		user = loaderInfo.parameters["user"];
+		if(user == null || user == "" || user == "__USER__") {
+			user = "guest";
+		}
 		
 		isExtensionDevMode = (loaderInfo.parameters['extensionDevMode'] == 'true');
 		isMicroworld = (loaderInfo.parameters['microworldMode'] == 'true');
@@ -228,6 +233,8 @@ public class Scratch extends Sprite {
 		//Analyze.countMissingAssets();
 
 		handleStartupParameters();
+
+		loadProjectByName('default');
 	}
 
 	protected function handleStartupParameters():void {
@@ -248,8 +255,6 @@ public class Scratch extends Sprite {
 			addExternalCallback('ASloadBase64SBX', loadBase64SBX);
 			addExternalCallback('ASsetModalOverlay', setModalOverlay);
 		}
-
-		addExternalCallback('ASloadProjectUrl', loadProjectUrl);
 	}
 
 	public function loadDataFromUrl(url:String, whenDone:Function) {
@@ -282,18 +287,56 @@ public class Scratch extends Sprite {
 		loader.load(request);
 	}
 
-	public function loadProjectUrl(url:String){
+
+
+	public function loadProjectByName(project:String = null): void{
+
 		function loadProjectComplete(_data:ByteArray):void {
 			lp.setInfo("Opening project...")
 			runtime.installProjectFromData(_data);
-			setProjectName("");
+			setProjectName(project);
 			removeLoadProgressBox();
-			ExternalInterface.call('JSloadProjectUrlCallback', false);
 		}
 
-		url += '&type=project'
-		addLoadProgressBox("Loading from Server...");
-		loadDataFromUrl(url, loadProjectComplete);
+		function loadProjectFromUrl(url:String):void {
+			loadDataFromUrl(url, loadProjectComplete);
+		}
+
+		function doInstall() {
+			var url:String = server.getLoadDataURL() + "type=project";
+			if (user != null) {
+				url += '&user=' + user;
+			}
+			if (project != null) {
+				url += '&project=' + project;	
+			}
+			
+			addLoadProgressBox("Loading from Server...");
+			loadDataFromUrl(url, loadProjectFromUrl);
+		}
+
+		if (app.stagePane.isEmpty() || project == 'default') doInstall();
+		else DialogBox.confirm('Replace existing project?', app.stage, doInstall);
+	}
+
+	public function removeProjectByName(project:String): void {
+
+		function removeProjectComplete(_msg:String) {
+			log(LogLevel.DEBUG, 'Remove project: ' + project + " return message: " + _msg);
+		}
+
+		function doRemove() {
+			var url:String = server.getLoadDataURL() + "type=removeproject";
+			if (user == null || project == null) {
+				return;
+			}
+
+			url += '&user=' + user;
+			url += '&project=' + project;
+			loadDataFromUrl(url, removeProjectComplete);
+		}
+
+		DialogBox.notify('Confirm to remove project?', project, app.stage, false, doRemove);
 	}
 
 	protected function jsEditorReady():void {
@@ -1118,13 +1161,22 @@ public class Scratch extends Sprite {
 	}
 
 	protected function addFileMenuItems(b:*, m:Menu):void {
+		var isGuest:Boolean = (user == null || user.toLowerCase() == "guest");
+
 		m.addItem('Upload from your computer', runtime.selectProjectFile);
 		m.addItem('Download to your computer', exportProjectToFile);
-		m.addItem('Save Project', saveProjectToServer);
-		if (runtime.recording || runtime.ready==ReadyLabel.COUNTDOWN || runtime.ready==ReadyLabel.READY) {
-			m.addItem('Stop Video', runtime.stopVideo);
-		} else {
-			m.addItem('Record Project Video', runtime.exportToVideo);
+		m.addLine();
+		
+		if(! isGuest) {
+			m.addItem('Load from server', loadProjectListFromServer);
+			m.addItem('Save to server', saveProjectToServer);
+			m.addLine();
+		
+			if (runtime.recording || runtime.ready==ReadyLabel.COUNTDOWN || runtime.ready==ReadyLabel.READY) {
+				m.addItem('Stop Video', runtime.stopVideo);
+			} else {
+				m.addItem('Record Project Video', runtime.exportToVideo);
+			}
 		}
 		if (canUndoRevert()) {
 			m.addLine();
@@ -1166,6 +1218,44 @@ public class Scratch extends Sprite {
 		addEditMenuItems(b, m);
 		var p:Point = b.localToGlobal(new Point(0, 0));
 		m.showOnStage(stage, b.x, topBarPart.bottom() - 1);
+	}
+
+	public function showDemoMenu(b:*):void {
+		var m:Menu = new Menu(null, 'Demo', CSS.topBarColor(), 28);
+		m.addItem('Load Game', loadDemoList);
+		var p:Point = b.localToGlobal(new Point(0, 0));
+		m.showOnStage(stage, b.x, topBarPart.bottom() - 1);
+	}
+
+	public function showSubscribeMenu(b:*):void {
+		var m:Menu = new Menu(null, 'Subscribe', CSS.topBarColor(), 28);
+		m.addItem('Subscribe Webchat Official Account', showSubscribeInfo);
+		var p:Point = b.localToGlobal(new Point(0, 0));
+		m.showOnStage(stage, b.x, topBarPart.bottom() - 1);
+	}
+
+	public function showSubscribeInfo() {
+		function loadSubscribeInfoComplete(_data:ByteArray) {
+    		var loader:Loader = new Loader();
+			loader.loadBytes(_data);
+			loader.contentLoaderInfo.addEventListener(Event.COMPLETE, function(event:Event):void {
+			    var loaderInfo:LoaderInfo = LoaderInfo(event.target);
+			    var bitmapData:BitmapData = new BitmapData(loaderInfo.width, loaderInfo.height, false, 0xFFFFFF);
+			    bitmapData.draw(loaderInfo.loader);
+			    DialogBox.close("Subscribe Webchat Official Account",null,new Bitmap(bitmapData),"Back to Scratch");
+			});
+		}
+
+		function loadSubscribeInfoFromUrl(url:String):void {
+			loadDataFromUrl(url, loadSubscribeInfoComplete);
+		}
+
+		var url:String = Scratch.app.server.getLoadDataURL() + "type=subscribe&user=" + Scratch.app.user;
+		loadDataFromUrl(url, loadSubscribeInfoFromUrl);
+	}
+
+	public function loadDemoList() {
+		loadProjectListFromServer('demo');
 	}
 
 	protected function addEditMenuItems(b:*, m:Menu):void {
@@ -1279,31 +1369,46 @@ public class Scratch extends Sprite {
 		loader.load(request);
 	}
 
+	public function loadProjectListFromServer(_user:String = null):void {
+
+		function loadProjectListComplete(_data:String):void {
+			addExternalCallback('ASLoadProject', loadProjectByName);
+			addExternalCallback('ASRemoveProject', removeProjectByName);
+			if (jsEnabled) {
+				externalCall('JSListProject("' + _data + '")', function (success:Boolean):void {
+				});
+			}
+		}
+		if (_user == null) {
+			_user = user;
+		}
+		var url:String = server.getLoadDataURL() + "type=listproject&user=" + _user;
+		loadDataFromUrl(url, loadProjectListComplete);
+	}
+
 	public function saveProjectToServer():void {
 
-		function callToSaveProject(): void {
-			if(!jsEnabled) return;
-			addExternalCallback('ASSaveDataToServer', saveCurrentProject);
-			externalCall('JSSaveDataToServer', function (flag:Boolean):void {
-                log(LogLevel.DEBUG, 'callback from JSSaveDataToServer');
-            });
-		}
+		var projectName:String = StringUtil.trim(projectName());
+		projectName = ((projectName.length > 0) ? projectName : 'Untitled');
 
-		function saveCurrentProject(url:String):void {
+		function saveCurrentProject():void {
 			scriptsPane.saveScripts(false);
 			var projectType:String = extensionManager.hasExperimentalExtensions() ? '.sbx' : '.sb2';
-			var defaultName:String = StringUtil.trim(projectName());
-			defaultName = ((defaultName.length > 0) ? defaultName : 'project') + projectType;
-
 			var zipData:ByteArray = projIO.encodeProjectAsZipFile(stagePane);
-			
-			url = url + "&type=project&filename=" + encodeURIComponent(defaultName);
+			var url:String = server.getSaveDataURL() + "type=project&filename=" + encodeURIComponent(projectName + projectType) + "&user=" + user;
 			saveDataToServer(url, zipData);
 		}
 
-		if (loadInProgress) return;
+		function doLoad() {
+			if (loadInProgress) {
+				logger.log(LogLevel.DEBUG, 'loadInProgress is true, skip loading...')
+				return;
+			}
+			projIO.convertSqueakSounds(stagePane, saveCurrentProject);	
+		}
+		
 		var projIO:ProjectIO = new ProjectIO(this);
-		projIO.convertSqueakSounds(stagePane, callToSaveProject);
+		DialogBox.notify('Save to server', 'You can re-load project from server', app.stage, false, doLoad);
 	}
 
 	public function exportProjectToFile(fromJS:Boolean = false, saveCallback:Function = null):void {

@@ -1,45 +1,88 @@
 # coding: utf-8
 
 import cherrypy
-import os
+import sys, os, socket
 import ConfigParser
 import subprocess
 import qrcode
 import logging
 from cherrypy.lib.static import serve_file
+from StringIO import StringIO
+from stat import S_ISREG, ST_MTIME, ST_MODE
+from time import gmtime, strftime, sleep
 
 # create logger
 logger = logging.getLogger('cherrypy')
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 fh = logging.FileHandler("/tmp/app.log")
-fh.setLevel(logging.INFO)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 fh.setFormatter(formatter)
 logger.addHandler(fh)
 
+sys.path.append(".")
+try:
+    from aliyun import Aliyun
+    aliyunInst = Aliyun(logger)
+except:
+    pass
+
+
+_hostname = '0.0.0.0'
+_port = 80
+
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+try:
+    s.bind((_hostname, _port))
+except socket.error as e:
+    sleep(3)
+
 server_config = {
-    'server.socket_host': '0.0.0.0',
-    'server.socket_port': 4080,
+    'server.socket_host': _hostname,
+    'server.socket_port': _port,
     'response.timeout': 10*60
 }
-
 cherrypy.config.update(server_config)
+
+def error_page_404(status, message, traceback, version):
+    return "Oops! Looks like you're lost"
+cherrypy.config.update({'error_page.404': error_page_404})
 
 def jsonify_tool_callback(*args, **kwargs):
     response = cherrypy.response
     response.headers['Content-Type'] = 'application/json'
 cherrypy.tools.jsonify = cherrypy.Tool('before_finalize', jsonify_tool_callback, priority=30)
 
+
 class App(object):
     PROJECT_PATH = "projects/"
     VIDEO_PATH = "videos/"
     SHARE_PATH = "share/"
-    FILE_TEMPLATE = "%s_%s"
+    FILE_TEMPLATE = "%s/%s"
 
     @cherrypy.expose
     def index(self, **args):
-        return file('scratch/Scratch.html')
+        url = cherrypy.url()
+        if 'scratch.svachina.com' in url:
+            return self.ide(**args)
+        else:
+            return file('scratch/tutorial.html')
+
+    @cherrypy.expose
+    def ide(self, **args):
+        uid = args.get('userid') if 'userid' in args else 'Guest'
+        uname = args.get('username') if 'username' in args else 'Guest'
+        logger.debug(uid + "  " + uname)
+        content = "".join(file('scratch/Scratch.html').readlines())
+        content = content.replace('__USERID__', uid)
+        content = content.replace('__USERNAME__', uname)
+        content = content.replace('__SUBSCRIBE_INFO__', aliyunInst.get_aliyun_url('static/wechat_official_account.jpg', True))
+        content = content.replace('__CDN_URL__', aliyunInst.get_cdn_url())
+        return StringIO(unicode(content))
+
+    @cherrypy.expose
+    def tutorial(self, **args):
+        return file('scratch/tutorial.html')
 
     @cherrypy.expose
     def save(self, **args):
@@ -47,24 +90,26 @@ class App(object):
         rawbody = cherrypy.request.body.read(int(cl))
         user = self.encode(args.get('user'))
         filename = self.encode(args.get('filename'))
+        filename = filename.replace(' ', '_')
         _type = args.get('type') if 'type' in args else 'project'
-        logger.debug("%s, %s, %s" % (user, filename, _type))
-
-        template = (App.VIDEO_PATH if _type == 'video' else App.PROJECT_PATH) + App.FILE_TEMPLATE
-
-        _file = template % (user, filename)
-        with open(_file, 'w') as f:
-            f.write(rawbody)
 
         if _type == 'video':
-            ofilename = App.FILE_TEMPLATE % (user, filename[:-4]+".mp4")
-            outfile = App.SHARE_PATH + ofilename
-            flag = self.convert_video(_file, outfile)
-            if flag:
-                # Todo try to qrcode html code directly?
-                # <video id = "video_id" width="100%" height="100%" controls="true" src="VIDEO_LINK" type="video/mp4"></video>
-                self.generate_qrcode('http://www.scratchonline.cn:4080/share?video=' + ofilename, outfile[:-4]+'.png')
-                return file(outfile[:-4]+'.png')
+            template = App.VIDEO_PATH + App.FILE_TEMPLATE
+            dest = template % (user, file)
+            url = aliyunInst.upload_convert_get_link(user, filename, rawbody)
+            if url:
+                self.generate_qrcode(url, filename +'.png')
+                return file(filename +'.png')
+            else:
+                return self.error('converting video failed')
+
+        elif _type == 'project':
+
+            template = App.PROJECT_PATH + App.FILE_TEMPLATE
+            dest = template % (user, filename)
+            status = aliyunInst.upload_bytes(dest, rawbody)
+
+            logger.debug("uploading project to %s and return code %s." % (dest, str(status)))
 
         return True
 
@@ -75,26 +120,23 @@ class App(object):
             box_size=10,
             border=4,
         )
-        qr.add_data(url)
+        qr.add_data('http://scratch.svachina.com/share?video=' + url)
+        # qr.add_data(url)
         qr.make(fit=True)
         img = qr.make_image()
         img.save(img_name)
 
     @cherrypy.expose
     def share(self, **args):
+        # todo fix the issue, not full url
         video = args.get('video')
-        if video:
-            return serve_file(os.getcwd() + '/share/'+video)
+        if not video: return ''
 
-    def convert_video(self, infile, outfile, to_format='mp4'):
-        command = "ffmpeg -i %s -f %s -vcodec libx264 -vf format=yuv420p -acodec libmp3lame %s;" % (infile, to_format, outfile)
-        subprocess.call(command, shell=True)
-        return os.path.isfile(outfile)
-
-    def list_files(self, user, _type):
-        type_dir = App.VIDEO_PATH if _type == 'video' else App.PROJECT_PATH
-        logger.info(type_dir)
-        return [f[len(user)+1:] for f in os.listdir(type_dir) if f.startswith(user)]
+        url = aliyunInst.get_aliyun_url(video)
+        if url:
+            return '<html><head><meta name="viewport" content="width=device-width"></head><body><video controls="true" autoplay="true" name="media"><source src="' + url +'" type="video/mp4"></video></body></html>'
+        else:
+            return 'Oops! Cannot find the video to play'
 
     @cherrypy.expose
     def load(self, **args):
@@ -102,19 +144,55 @@ class App(object):
         _type = args.get('type')
         logger.debug("%s %s" % (user, _type))
 
-        project_files = self.list_files(user, _type)
-        logger.debug(",".join(project_files))
+        if _type == 'project':
+            project = args.get('project')
+            if not project: return self.error('project name is necessary')
+            if (not project.endswith('.sb2')):
+                project += '.sb2'
 
-        if len(project_files) > 0:
-            filename = project_files[0]
-            logger.info(filename)
+            for _u in [user, 'demo', 'default']:
+                project_file = App.PROJECT_PATH + App.FILE_TEMPLATE % (_u, project)
+                logger.debug(project_file)
 
-        template = (App.VIDEO_PATH if _type == 'video' else App.PROJECT_PATH) + App.FILE_TEMPLATE
-        try:
-            return file(template % (user, filename))
-        except:
-            if _type == 'project': return file(App.PROJECT_PATH + "default.sb2")
+                if aliyunInst.is_object_exist(project_file):
+                    return aliyunInst.get_aliyun_url(project_file)
+                
+            return self.error('project %s is not exist, please try others' % (project))
 
+        elif _type == 'listproject':
+            path = App.PROJECT_PATH + App.FILE_TEMPLATE % (user, '')
+            entries = aliyunInst.list_files(path, 'sb2')
+            plist = map(lambda (ts, path): "|".join((os.path.basename(path)[:-len(".sb2")], strftime("%Y-%m-%d %H:%M:%S", gmtime(ts)))), sorted(entries))
+
+            plistStr = ','.join(plist)
+            logger.debug(plistStr)
+            return plistStr
+
+        elif _type == 'removeproject':
+            project = args.get('project')
+            if not user or user in ['', '/', '.', '..', '*', 'demo', 'guest', 'default']:
+                return self.error('invalid user name: ' + user)
+            if not project: return self.error('project name is necessary')
+
+            if not project.endswith('.sb2'):
+                project += '.sb2'
+
+            project_file = App.PROJECT_PATH + App.FILE_TEMPLATE % (user, project)
+            if aliyunInst.is_object_exist(project_file):
+                aliyunInst.remove_object(project_file)
+            
+            return True
+
+        elif _type == 'subscribe':
+            return aliyunInst.get_aliyun_url('static/wechat_official_account.jpg', True)
+        else:
+            return self.error('correct type is necessary')
+
+    def error(self, message):
+        return self.message('ERROR', message)
+
+    def message(self, code, message):
+        return "[%s]: %s" % (code, message)
     
     def encode(self, _str, charset='uft-8'):
         try:
@@ -137,14 +215,6 @@ if __name__ == '__main__':
         '/scratch': {
             'tools.staticdir.on': True,
             'tools.staticdir.dir': 'scratch'
-        },
-        '/share': {
-            'tools.staticdir.on': True,
-            'tools.staticdir.dir': 'share'
-        },
-        '/share.html': {
-            'tools.staticfile.on': True,
-            'tools.staticfile.filename': working_directory + '/scratch/share.html'
         },
         '/crossdomain.xml': {
             'tools.staticfile.on': True,

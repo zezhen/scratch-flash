@@ -268,6 +268,16 @@ public class Server implements IServer {
 		return serverGet(url, whenDone);
 	}
 
+
+	public function getLoadDataURL():String {
+		return URLs.sitePrefix + URLs.loadDataAction;
+	}
+
+	public function getSaveDataURL():String {
+		return URLs.sitePrefix + URLs.saveDataAction;
+	}
+
+
 	public function getMediaLibrary(libraryType:String, whenDone:Function):URLLoader {
 		var url:String = getCdnStaticSiteURL() + 'medialibraries/' + libraryType + 'Library.json';
 		return serverGet(url, whenDone);
@@ -335,13 +345,17 @@ public class Server implements IServer {
 	public function getSelectedLang(whenDone:Function):void {
 		// Get the language setting.
 		var sharedObj:SharedObject = SharedObject.getLocal('Scratch');
-		if (sharedObj.data.lang) whenDone(sharedObj.data.lang);
+		if (sharedObj.data.lang) {
+			whenDone(sharedObj.data.lang);
+		} else{
+			whenDone('zh-cn');
+		}
 	}
 
 	public function setSelectedLang(lang:String):void {
 		// Record the language setting.
 		var sharedObj:SharedObject = SharedObject.getLocal('Scratch');
-		if (lang == '') lang = 'en';
+		if (lang == '') lang = 'zh-cn';
 		sharedObj.data.lang = lang;
 		sharedObj.flush();
 	}
