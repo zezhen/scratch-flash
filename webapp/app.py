@@ -66,7 +66,7 @@ class App(object):
         url = cherrypy.url()
         if 'scratch.svachina.com' in url:
             return self.ide(**args)
-        else
+        else:
             return file('scratch/tutorial.html')
 
     @cherrypy.expose
