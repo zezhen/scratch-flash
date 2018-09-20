@@ -60,7 +60,7 @@
 
     function show_video(video) {
       $('#video_id').attr('src', 'https://svea-flv.oss-cn-hangzhou.aliyuncs.com/videos/tutorial/' + video);
-      $("#videoid").load();
+      $("#video_id")[0].load();
     }
 
     function load(videos) {
