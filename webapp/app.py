@@ -81,6 +81,10 @@ class App(object):
         return StringIO(unicode(content))
 
     @cherrypy.expose
+    def tutorial(self, **args):
+        return file('scratch/tutorial.html')
+
+    @cherrypy.expose
     def save(self, **args):
         cl = cherrypy.request.headers['Content-Length']
         rawbody = cherrypy.request.body.read(int(cl))
