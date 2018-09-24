@@ -25,17 +25,19 @@ try:
     from aliyun import Aliyun
     aliyunInst = Aliyun(logger)
 except:
-    pass
-
+    from local import Local
+    aliyunInst = Local(logger)
 
 _hostname = '0.0.0.0'
 _port = 80
+if 'justin-laptop' == socket.gethostname():
+    _port = 4080
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-try:
-    s.bind((_hostname, _port))
-except socket.error as e:
-    sleep(3)
+# try:
+#     s.bind((_hostname, _port))
+# except socket.error as e:
+#     sleep(10)
 
 server_config = {
     'server.socket_host': _hostname,
@@ -76,8 +78,11 @@ class App(object):
         content = "".join(file('scratch/Scratch.html').readlines())
         content = content.replace('__USERID__', uid)
         content = content.replace('__USERNAME__', uname)
-        content = content.replace('__SUBSCRIBE_INFO__', aliyunInst.get_aliyun_url('static/wechat_official_account.jpg', True))
-        content = content.replace('__CDN_URL__', aliyunInst.get_cdn_url())
+        try:
+            content = content.replace('__SUBSCRIBE_INFO__', aliyunInst.get_url('static/wechat_official_account.jpg', True))
+            content = content.replace('__CDN_URL__', aliyunInst.get_cdn_url())
+        except:
+            pass
         return StringIO(unicode(content))
 
     @cherrypy.expose
@@ -132,7 +137,7 @@ class App(object):
         video = args.get('video')
         if not video: return ''
 
-        url = aliyunInst.get_aliyun_url(video)
+        url = aliyunInst.get_url(video)
         if url:
             return '<html><head><meta name="viewport" content="width=device-width"></head><body><video controls="true" autoplay="true" name="media"><source src="' + url +'" type="video/mp4"></video></body></html>'
         else:
@@ -155,7 +160,7 @@ class App(object):
                 logger.debug(project_file)
 
                 if aliyunInst.is_object_exist(project_file):
-                    return aliyunInst.get_aliyun_url(project_file)
+                    return aliyunInst.get_url(project_file)
                 
             return self.error('project %s is not exist, please try others' % (project))
 
@@ -184,7 +189,7 @@ class App(object):
             return True
 
         elif _type == 'subscribe':
-            return aliyunInst.get_aliyun_url('static/wechat_official_account.jpg', True)
+            return aliyunInst.get_url('static/wechat_official_account.jpg', True)
         else:
             return self.error('correct type is necessary')
 
@@ -208,13 +213,17 @@ if __name__ == '__main__':
             'tools.sessions.on': True,
             'tools.staticdir.root': os.path.abspath(working_directory)
         },
-        '/assets': {
+        '/static': {
             'tools.staticdir.on': True,
-            'tools.staticdir.dir': 'assets'
+            'tools.staticdir.dir': 'static'
         },
         '/scratch': {
             'tools.staticdir.on': True,
             'tools.staticdir.dir': 'scratch'
+        },
+        '/projects': {
+            'tools.staticdir.on': True,
+            'tools.staticdir.dir': 'projects'
         },
         '/crossdomain.xml': {
             'tools.staticfile.on': True,

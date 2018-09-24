@@ -29,13 +29,10 @@ if [ $mode != 'dev' ]; then
     deployDir=`mktemp -d '/tmp/scratch-XXXX'`
 fi
 
+# build Scratch.swf
+./gradlew build -Ptarget=11.6
+cp build/11.6/Scratch.swf webapp/scratch/Scratch.swf
+
 # sync webapp files/directories
 sync $root/webapp scratchonline
-
-# sync bin-* files 
-if [ $mode == 'dev' ]; then
-    sync $root/bin-debug scratchonline/scratch
-else
-    sync $root/bin-release scratchonline/scratch
-fi
 

@@ -52,7 +52,7 @@ class Aliyun(object):
             self.logger.error(e)
             return False
 
-    def get_aliyun_url(self, path, is_public=False):
+    def get_url(self, path, is_public=False):
         if not is_public:
             url = self.bucket.sign_url('GET', path, 60*60*24*7)
             self.logger.debug(url)

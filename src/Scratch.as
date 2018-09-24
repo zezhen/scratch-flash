@@ -167,9 +167,7 @@ public class Scratch extends Sprite {
 
 	protected function initialize():void {
 		//isOffline = !URLUtil.isHttpURL(loaderInfo.url);
-		isOffline = true;
-		log(LogLevel.DEBUG, loaderInfo.url);
-		log(LogLevel.DEBUG, "set isOffline to " + isOffline);
+		isOffline = true;		
 		hostProtocol = URLUtil.getProtocol(loaderInfo.url);
 
 		user = loaderInfo.parameters["user"];
@@ -258,7 +256,6 @@ public class Scratch extends Sprite {
 	}
 
 	public function loadDataFromUrl(url:String, whenDone:Function) {
-		log(LogLevel.DEBUG, url);
 
  		function handleError(e:ErrorEvent):void {
 			jsThrowError('Failed to load url: ' + e.toString());
@@ -1340,7 +1337,6 @@ public class Scratch extends Sprite {
 	}
 
 	public function saveDataToServer(url:String, _data:ByteArray, whenDone:Function = null):void {
-		log(LogLevel.DEBUG, url);
 
 		function handleError(e:ErrorEvent):void {
 			jsThrowError('Failed to save project: ' + e.toString());
